@@ -267,3 +267,83 @@ def get_events(ad_account_id: str, os_filter: str | None = None) -> list[dict]:
     """os_filter: IOS | ANDROID | "" (web) | None (all)."""
     params = {} if os_filter is None else {"os": os_filter}
     return _get(f"/event/getList/{ad_account_id}", params=params).get("list", [])
+
+
+# --- Campaign / Ad Set: status toggle (added for the safeguard skills) ---
+
+def update_campaign_status(campaign_id: str, status: str) -> dict:
+    """status: ON | OFF. Pausing (OFF), never deleting -- same convention as
+    update_ad_status. Verified against the real endpoint 2026-09-14
+    (PUT /campaign/updateStatus/{id})."""
+    return _put(f"/campaign/updateStatus/{campaign_id}", {"status": status})
+
+
+def update_ad_set_status(ad_set_id: str, status: str) -> dict:
+    """status: ON | OFF. Verified against the real endpoint 2026-09-14
+    (PUT /ad-set/updateStatus/{id})."""
+    return _put(f"/ad-set/updateStatus/{ad_set_id}", {"status": status})
+
+
+# --- Report ---
+
+def get_report(ad_account_id: str, dimensions: list[str], metrics: list[str],
+                date_range: str = "LAST_7_DAYS", start_date: str | None = None,
+                end_date: str | None = None, timezone: str = "UTC",
+                event_metrics: list[dict] | None = None,
+                filter_type: str = "AD_ACCOUNT",
+                filter_ids: list[str] | None = None) -> dict:
+    """Wraps POST /reports/getIntegratedReport (verified live 2026-09-14).
+
+    dateRange: FIXED | YESTERDAY | LAST_7_DAYS | LAST_14_DAYS | LAST_30_DAYS |
+    MONTH_TO_DATE | QUARTER_TO_DATE | TODAY. start_date/end_date (YYYY-MM-DD)
+    required when date_range="FIXED".
+
+    dimensions: DATE, HOUR, ORG, AD_ACCOUNT, CAMPAIGN, AD_SET, AD, PLACEMENT
+    (uppercase only). HOUR only works with YESTERDAY/TODAY/a 1-day FIXED
+    range; DATE only works with a range <=30 days.
+
+    metrics: COST, IMPRESSION, CLICK, CONVERSION, VALUE, CPM, CPC, CPA, CTR,
+    CVR, VPA, COMPLETE_PAYMENT_ROAS, SALE_ROAS, APP_PURCHASE_ROAS,
+    APP_IN_APP_AD_IMPR_ROAS.
+
+    event_metrics: list of {"eventType": "<lowercase event type, e.g.
+    complete_payment>", "metrics": ["COUNT","VALUE","CPA","VPA","CVR"]} --
+    this is how per-event-type counts (leads, purchases, etc.) come back,
+    since "CONVERSION"/"VALUE" alone are NOT broken out by event type. Real
+    per-account event type names vary (confirmed live 2026-09-14): not
+    every account has the same events configured (e.g. RF has no lead-type
+    event at all, only complete_payment + view_content) -- always check
+    get_events() for an account rather than assuming a fixed set.
+
+    filter_type / filter_ids: scopes the report to specific IDs at that
+    level (ORG, AD_ACCOUNT, CAMPAIGN, AD_SET, AD) -- filter_ids values are
+    coerced to int (the real API takes them as list of int, confirmed live,
+    even though every other ID in this API is a string). When filter_type
+    is the default AD_ACCOUNT and filter_ids is omitted, defaults to
+    `[ad_account_id]` itself (scopes to just this account); for any other
+    filter_type, filter_ids must be given explicitly (e.g. campaign or ad
+    set IDs) -- there's no sensible default to fall back to.
+
+    Returns the full {rows, aggregateData} data dict. `cost`/`conversionValue`
+    etc. are in CENTS (this API's universal money unit) -- divide by 100 for
+    dollars, same as everywhere else in this wrapper.
+    """
+    if not filter_ids:
+        if filter_type != "AD_ACCOUNT":
+            raise ValueError(f"filter_ids is required when filter_type={filter_type!r}")
+        filter_ids = [ad_account_id]
+    body = {
+        "name": f"api-{filter_type.lower()}-report",
+        "timezone": timezone,
+        "dateRange": date_range,
+        "filter": filter_type,
+        "filterIds": [int(i) for i in filter_ids],
+        "dimensions": dimensions,
+        "metrics": metrics,
+    }
+    if date_range == "FIXED":
+        body["startDate"] = start_date
+        body["endDate"] = end_date
+    if event_metrics:
+        body["eventMetrics"] = event_metrics
+    return _post("/reports/getIntegratedReport", body)

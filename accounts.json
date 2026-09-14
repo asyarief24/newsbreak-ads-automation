@@ -6,7 +6,10 @@
     "adset_ids": [
       "2091745516889493505",
       "2094952544982056961"
-    ]
+    ],
+    "lpv_event_type": "view_content",
+    "lead_event_types": [],
+    "purchase_event_type": "complete_payment"
   },
   "HVAC": {
     "org_id": "1889568836819189762",
@@ -15,7 +18,10 @@
     "adset_ids": [
       "2094334786659987457",
       "2095359829084520449"
-    ]
+    ],
+    "lpv_event_type": "view_content",
+    "lead_event_types": ["submit_form", "complete_registration"],
+    "purchase_event_type": "complete_payment"
   },
   "Nutra": {
     "org_id": "1889568836819189762",
@@ -26,23 +32,35 @@
     "ad_account_id": "2094327769084837890",
     "campaign_id": "2095342926060371969",
     "adset_ids": [
-      "2095342930799935490"
-    ]
+      "2095342930799935490",
+      "2095483742196121601"
+    ],
+    "lpv_event_type": "view_content",
+    "lead_event_types": ["submit_form", "complete_registration"],
+    "purchase_event_type": "complete_payment"
   },
   "Siding": {
     "org_id": "1889568836819189762",
     "ad_account_id": "2094328009200353282",
     "campaign_id": "2095353803060854785",
     "adset_ids": [
-      "2095353807783641090"
-    ]
+      "2095353807783641090",
+      "2096001982752145409"
+    ],
+    "lpv_event_type": "view_content",
+    "lead_event_types": ["submit_form", "complete_registration"],
+    "purchase_event_type": "complete_payment"
   },
   "Flooring": {
     "org_id": "1889568836819189762",
     "ad_account_id": "2094328301908246530",
     "campaign_id": "2095357426725601282",
     "adset_ids": [
-      "2095357431553245186"
-    ]
+      "2095357431553245186",
+      "2096026116202741762"
+    ],
+    "lpv_event_type": "view_content",
+    "lead_event_types": ["submit_form", "complete_registration"],
+    "purchase_event_type": "complete_payment"
   }
 }

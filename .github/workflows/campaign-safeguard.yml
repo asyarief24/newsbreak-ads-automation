@@ -1,0 +1,109 @@
+name: Campaign safeguard (every 30 min)
+
+# DRY-RUN BURN-IN as of 2026-09-14 -- ported from meta-ads-automation's
+# meta-campaign-safeguard with thresholds re-derived for NewsBreak's own
+# real trailing data (see campaign_safeguard.py's module docstring). Runs
+# WITHOUT --execute deliberately, per explicit user choice: this needs a
+# real dry-run burn-in period (reviewing --verbose-log output over some
+# real days) before being flipped to real writes, the same discipline the
+# Meta-side safeguards went through. --verbose-log is ON for the same
+# reason Meta's was during its own burn-in -- richer log data to review;
+# revisit (probably turn off) once this flips to --execute, matching what
+# happened on the Meta side once burn-in there was done.
+#
+# Flip to --execute (and drop --verbose-log) only after real dry-run output
+# has been reviewed and this workflow's own comment is updated to say so --
+# do not flip it silently.
+on:
+  schedule:
+    - cron: "0,30 * * * *"
+    - cron: "5 0 * * *"  # once-daily backstop shortly after 00:00 UTC (this
+                          # project has no per-account timezone lookup, so
+                          # everything resets on UTC midnight -- see the
+                          # script's own docstring) -- a dedicated daily cron
+                          # is less likely to be dropped than relying on the
+                          # 30-minute schedule happening to fire right then,
+                          # same reasoning as meta-campaign-safeguard's own
+                          # second cron entry.
+  workflow_dispatch:
+    inputs:
+      account:
+        description: >-
+          Account to check, or "all" for every account with a campaign_id
+          (RF HVAC Siding Bathroom Flooring). Only used for manual runs.
+        required: false
+        default: "all"
+        type: string
+
+permissions:
+  contents: write  # needed to commit campaign_safeguard_state/*.json and logs/ back to the repo
+
+jobs:
+  campaign-safeguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run campaign safeguard
+        env:
+          NEWSBREAK_ACCESS_TOKEN: ${{ secrets.NEWSBREAK_ACCESS_TOKEN }}
+          ACCOUNT_SELECTION: ${{ inputs.account || 'all' }}
+        run: |
+          set +e
+          if [ "$ACCOUNT_SELECTION" = "all" ]; then
+            accounts="RF HVAC Siding Bathroom Flooring"
+          else
+            accounts="$ACCOUNT_SELECTION"
+          fi
+          echo "Running for: $accounts"
+          failures=""
+          for account in $accounts; do
+            echo "::group::${account}"
+            # DRY-RUN BURN-IN -- see header comment. Not yet --execute.
+            python .claude/skills/newsbreak-campaign-safeguard/scripts/campaign_safeguard.py "$account" --verbose-log
+            if [ $? -ne 0 ]; then
+              failures="$failures $account"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failures" ]; then
+            echo "FAILED accounts:$failures"
+            echo "FAILURES=$failures" >> "$GITHUB_ENV"
+          fi
+          exit 0
+
+      - name: Commit updated state and logs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p campaign_safeguard_state logs/campaign-safeguards
+          git add campaign_safeguard_state/ logs/campaign-safeguards/
+          if git diff --staged --quiet; then
+            echo "No state/log changes to commit."
+          else
+            git commit -m "Campaign safeguard state/log update"
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              echo "Push rejected (attempt $attempt/3) -- pulling and retrying..."
+              git pull --rebase origin master
+              if [ "$attempt" = "3" ]; then
+                echo "::error::Push still failing after 3 attempts."
+                exit 1
+              fi
+            done
+          fi
+
+      - name: Fail the run if any account errored
+        if: env.FAILURES != ''
+        run: |
+          echo "One or more accounts failed this run: $FAILURES"
+          exit 1
