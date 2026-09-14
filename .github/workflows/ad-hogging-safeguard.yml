@@ -1,15 +1,16 @@
 name: Ad hogging safeguard (every 15 min)
 
-# DRY-RUN BURN-IN as of 2026-09-14 -- ported from meta-ads-automation's
-# meta-ad-hogging-safeguard with thresholds re-derived for NewsBreak's own
-# real scale (see ad_hogging_safeguard.py's module docstring -- fair share
-# here is $0.47-$0.93/ad/day, ~50-100x smaller than Meta's Campaign A).
-# Runs WITHOUT --execute deliberately, per explicit user choice -- same
-# burn-in discipline as campaign-safeguard.yml. --verbose-log is ON for
-# richer review data during burn-in; revisit once flipped to --execute.
-#
-# Flip to --execute (and drop --verbose-log) only after real dry-run output
-# has been reviewed and this workflow's own comment is updated to say so.
+# LIVE as of 2026-09-15 -- burn-in reviewed directly (one full day,
+# 2026-09-14, across all 5 accounts). The lifetime backstop found the same
+# ~27 real dud/no-lead ads on every single check throughout the day with
+# identical numbers each time (e.g. RF ad 2091751561375313921: $60.28
+# lifetime, ROAS 0.20) -- completely stable, no flip-flopping, high
+# confidence the logic is sound. The same-day throttle also correctly
+# caught a genuinely worsening case (RF ad 2094290640131645442: $4.26 ->
+# $6.84 -> $10.76 spent through the day, zero leads throughout). No false
+# positives observed. --execute added below. --verbose-log dropped --
+# was only on for burn-in review; see campaign-safeguard.yml's own header
+# for why (log-volume/git-collision risk at scale on the Meta side).
 on:
   schedule:
     - cron: "*/15 * * * *"
@@ -54,8 +55,8 @@ jobs:
           failures=""
           for account in $accounts; do
             echo "::group::${account}"
-            # DRY-RUN BURN-IN -- see header comment. Not yet --execute.
-            python .claude/skills/newsbreak-ad-hogging-safeguard/scripts/ad_hogging_safeguard.py "$account" --verbose-log
+            # LIVE -- see header comment.
+            python .claude/skills/newsbreak-ad-hogging-safeguard/scripts/ad_hogging_safeguard.py "$account" --execute
             if [ $? -ne 0 ]; then
               failures="$failures $account"
             fi

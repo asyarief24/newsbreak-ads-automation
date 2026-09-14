@@ -14,8 +14,12 @@ Four independent layers, all sharing the same tag-and-resume state machinery
 (campaign_safeguard_state/<ACCOUNT>.json):
 
   1. ROAS-vs-spend throttle -- pauses the campaign if today's spend has
-     crossed ROAS_THROTTLE_MIN_SPEND_USD and today's ROAS is below
-     ROAS_THROTTLE_FLOOR. Re-evaluated every run even while paused (a
+     crossed ROAS_THROTTLE_MIN_SPEND_USD (doubled, ROAS_THROTTLE_ZERO_
+     PURCHASE_MULTIPLIER, when today has zero purchases -- added 2026-09-15
+     after the first day of burn-in showed every single trip that day was
+     ROAS exactly 0.00, the same attribution-lag false-positive
+     meta-ad-hogging-safeguard already found and fixed) and today's ROAS is
+     below ROAS_THROTTLE_FLOOR. Re-evaluated every run even while paused (a
      late-attributing postback can flip it back to healthy on its own).
 
   2. Click -> LPV (view_content) crash -- catches a dead landing page.
@@ -96,6 +100,18 @@ LOG_DIR = PROJECT_ROOT / "logs" / "campaign-safeguards"
 
 ROAS_THROTTLE_MIN_SPEND_USD = 20.0
 ROAS_THROTTLE_FLOOR = 0.5
+# Added 2026-09-15 after reviewing the first day of dry-run burn-in: every
+# single Layer 1 trip that day (7 across RF/Siding/Bathroom/Flooring) showed
+# ROAS EXACTLY 0.00 -- zero purchases recorded at all, not just a bad ratio.
+# This is the identical false-positive pattern meta-ad-hogging-safeguard
+# already found and fixed on the Meta side (see AD_MIN_PURCHASES_FOR_ROAS
+# there): with zero purchases, "ROAS 0.00" is usually same-day attribution/
+# postback lag, not a real crash, and is indistinguishable from a genuine
+# dead buyer network without more evidence. Mirrors that same fix here --
+# a zero-purchase reading needs to clear a higher spend bar before this
+# layer trusts it, giving real attribution time to catch up; a reading with
+# at least one real purchase is trusted at the normal floor.
+ROAS_THROTTLE_ZERO_PURCHASE_MULTIPLIER = 2.0
 
 LPV_CRASH_MIN_CLICKS = 15
 LPV_CRASH_RATIO = 0.5  # trip below 50% of this account's own trailing baseline
@@ -188,9 +204,13 @@ def set_campaign_status(account: dict, status: str, execute: bool) -> None:
 
 
 def evaluate_layer_1(today: dict) -> Optional[str]:
-    if today["cost"] >= ROAS_THROTTLE_MIN_SPEND_USD and today["roas"] < ROAS_THROTTLE_FLOOR:
-        return (f"ROAS-vs-spend throttle: ${today['cost']:.2f} spent today, "
-                f"ROAS {today['roas']:.2f} < floor {ROAS_THROTTLE_FLOOR}")
+    min_spend = ROAS_THROTTLE_MIN_SPEND_USD
+    if today["purchases"] == 0:
+        min_spend *= ROAS_THROTTLE_ZERO_PURCHASE_MULTIPLIER
+    if today["cost"] >= min_spend and today["roas"] < ROAS_THROTTLE_FLOOR:
+        note = " (0 purchases -- doubled bar)" if today["purchases"] == 0 else ""
+        return (f"ROAS-vs-spend throttle: ${today['cost']:.2f} spent today (bar ${min_spend:.2f}"
+                f"{note}), ROAS {today['roas']:.2f} < floor {ROAS_THROTTLE_FLOOR}")
     return None
 
 

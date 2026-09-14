@@ -1,19 +1,21 @@
 name: Campaign safeguard (every 30 min)
 
-# DRY-RUN BURN-IN as of 2026-09-14 -- ported from meta-ads-automation's
-# meta-campaign-safeguard with thresholds re-derived for NewsBreak's own
-# real trailing data (see campaign_safeguard.py's module docstring). Runs
-# WITHOUT --execute deliberately, per explicit user choice: this needs a
-# real dry-run burn-in period (reviewing --verbose-log output over some
-# real days) before being flipped to real writes, the same discipline the
-# Meta-side safeguards went through. --verbose-log is ON for the same
-# reason Meta's was during its own burn-in -- richer log data to review;
-# revisit (probably turn off) once this flips to --execute, matching what
-# happened on the Meta side once burn-in there was done.
-#
-# Flip to --execute (and drop --verbose-log) only after real dry-run output
-# has been reviewed and this workflow's own comment is updated to say so --
-# do not flip it silently.
+# LIVE as of 2026-09-15 -- burn-in reviewed directly (one full day,
+# 2026-09-14, across all 5 accounts). Real finding: every Layer 1 trip that
+# day showed ROAS exactly 0.00 (zero purchases, not just underwater) --
+# the same attribution-lag false-positive meta-ad-hogging-safeguard had
+# already found and fixed on the Meta side. Fixed here the same way
+# (ROAS_THROTTLE_ZERO_PURCHASE_MULTIPLIER -- see campaign_safeguard.py's
+# docstring) and re-verified live against real same-day data immediately
+# after: RF correctly read healthy once a real purchase landed (ROAS 1.48),
+# Flooring correctly held off at $31.61/0 purchases (below the doubled
+# bar), while Bathroom ($46.78/0 purchases) and Siding ($41.46/0
+# purchases) still correctly tripped -- both had genuinely cleared even
+# the doubled bar, a real high-confidence same-day signal. --execute
+# added below. --verbose-log dropped at the same time (was only on for
+# burn-in review) -- Meta's own experience is that verbose mode causes
+# log-volume/git-commit-collision problems at scale, so this goes
+# straight to the quieter steady-state logging Meta itself settled on.
 on:
   schedule:
     - cron: "0,30 * * * *"
@@ -66,8 +68,8 @@ jobs:
           failures=""
           for account in $accounts; do
             echo "::group::${account}"
-            # DRY-RUN BURN-IN -- see header comment. Not yet --execute.
-            python .claude/skills/newsbreak-campaign-safeguard/scripts/campaign_safeguard.py "$account" --verbose-log
+            # LIVE -- see header comment.
+            python .claude/skills/newsbreak-campaign-safeguard/scripts/campaign_safeguard.py "$account" --execute
             if [ $? -ne 0 ]; then
               failures="$failures $account"
             fi

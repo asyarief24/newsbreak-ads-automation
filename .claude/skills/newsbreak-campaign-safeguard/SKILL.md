@@ -1,6 +1,6 @@
 ---
 name: newsbreak-campaign-safeguard
-description: Runs on a schedule across a named NewsBreak account's single campaign (both ad sets together -- this project has no Tier1/Campaign A split), watching for things NewsBreak's own delivery algorithm has no visibility into -- a dead landing page, a broken lead form, or a downstream buyer network that's stopped purchasing leads. Ported from meta-ads-automation's meta-campaign-safeguard (same 4-layer design: ROAS-vs-spend throttle, click->LPV crash, LPV->lead crash, lead->purchase crash), but with thresholds re-derived from NewsBreak's own real trailing data rather than copying Meta's dollar figures -- this project's accounts run 10-50x smaller daily spend. This is a WRITE skill (pauses/resumes the campaign) -- dry-run by default, only makes real changes with --execute. Currently in a dry-run burn-in period (see Status below) before the scheduled workflow is flipped to --execute.
+description: Runs on a schedule across a named NewsBreak account's single campaign (both ad sets together -- this project has no Tier1/Campaign A split), watching for things NewsBreak's own delivery algorithm has no visibility into -- a dead landing page, a broken lead form, or a downstream buyer network that's stopped purchasing leads. Ported from meta-ads-automation's meta-campaign-safeguard (same 4-layer design: ROAS-vs-spend throttle, click->LPV crash, LPV->lead crash, lead->purchase crash), with thresholds re-derived from NewsBreak's own real trailing data rather than copying Meta's dollar figures -- this project's accounts run 10-50x smaller daily spend. This is a WRITE skill (pauses/resumes the campaign) -- dry-run by default, only makes real changes with --execute. LIVE as of 2026-09-15 (see Status below) -- the scheduled GitHub Actions workflow runs with --execute.
 ---
 
 # NewsBreak Campaign Safeguard
@@ -90,22 +90,27 @@ design around arbitrarily large gaps between runs).
 Fully autonomous by design, matching the Meta-side safeguards -- no Slack,
 email, or GitHub Issue. The daily log is the only visibility.
 
-## Status: DRY-RUN BURN-IN (as of 2026-09-14)
+## Status: LIVE (as of 2026-09-15)
 
-Built and verified working against live data the same day (all 5 accounts
-ran cleanly, no crashes; the ad-hogging sibling skill's lifetime backstop
-already found real dud/no-lead ads on first run against these same
-accounts). Explicitly **not yet flipped to `--execute`** -- per the user's
-own choice, this needs a real dry-run burn-in period (reviewing actual
-`--verbose-log` output over some real days) before the scheduled workflow
-starts making real writes, the same discipline `meta-campaign-safeguard`
-went through before going live. The GitHub Actions workflow currently runs
-WITHOUT `--execute`.
+Burn-in reviewed directly (one full day, 2026-09-14, across all 5
+accounts). Real finding: every Layer 1 (ROAS-vs-spend) trip that day showed
+ROAS exactly 0.00 -- zero purchases, not just underwater -- the same
+attribution-lag false-positive `meta-ad-hogging-safeguard` had already
+found and fixed on the Meta side. Fixed here with
+`ROAS_THROTTLE_ZERO_PURCHASE_MULTIPLIER` (doubles the spend floor when
+today has zero purchases) and re-verified live immediately after: RF
+correctly read healthy once a real purchase landed (ROAS 1.48), Flooring
+correctly held off at $31.61/0 purchases (below the doubled bar), while
+Bathroom ($46.78/0 purchases) and Siding ($41.46/0 purchases) still
+correctly tripped -- both had genuinely cleared even the doubled bar, a
+real high-confidence signal. `.github/workflows/campaign-safeguard.yml`
+now runs with `--execute`; `--verbose-log` dropped (was only on for
+burn-in review).
 
-**Thresholds are a first pass**, not tuned over weeks the way Meta's were --
-see the module docstring's derivation table. Revisit as more real trailing
-data accumulates, especially once accounts run longer than the current
-~2 weeks of history.
+**Thresholds are still a first pass**, not tuned over weeks the way Meta's
+were -- see the module docstring's derivation table. Revisit as more real
+trailing data accumulates, especially once accounts run longer than the
+current ~2 weeks of history.
 
 ## If something looks wrong
 

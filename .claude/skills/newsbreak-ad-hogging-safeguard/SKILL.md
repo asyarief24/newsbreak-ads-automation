@@ -1,6 +1,6 @@
 ---
 name: newsbreak-ad-hogging-safeguard
-description: Runs on a schedule across a named NewsBreak account's two ad sets, pausing any single ad taking more than its fair share of that ad set's own daily budget while performing badly today -- so other ads sharing the same budget get a fair chance. Separate concern from newsbreak-campaign-safeguard's whole-campaign ROAS-vs-spend throttle -- this is ad-level and mostly reversible same-day, plus a separate permanent lifetime-backstop kill for ads that have proven themselves genuine duds. Ported from meta-ads-automation's meta-ad-hogging-safeguard (same same-day throttle + lifetime-backstop design), with thresholds re-derived from NewsBreak's own real trailing data -- fair share here is $0.47-$0.93/ad/day, roughly 50-100x smaller than Meta's Campaign A. This is a WRITE skill (pauses/resumes individual ads) -- dry-run by default, only makes real changes with --execute. Currently in a dry-run burn-in period (see Status below) before the scheduled workflow is flipped to --execute.
+description: Runs on a schedule across a named NewsBreak account's two ad sets, pausing any single ad taking more than its fair share of that ad set's own daily budget while performing badly today -- so other ads sharing the same budget get a fair chance. Separate concern from newsbreak-campaign-safeguard's whole-campaign ROAS-vs-spend throttle -- this is ad-level and mostly reversible same-day, plus a separate permanent lifetime-backstop kill for ads that have proven themselves genuine duds. Ported from meta-ads-automation's meta-ad-hogging-safeguard (same same-day throttle + lifetime-backstop design), with thresholds re-derived from NewsBreak's own real trailing data -- fair share here is $0.47-$0.93/ad/day, roughly 50-100x smaller than Meta's Campaign A. This is a WRITE skill (pauses/resumes individual ads) -- dry-run by default, only makes real changes with --execute. LIVE as of 2026-09-15 (see Status below) -- the scheduled GitHub Actions workflow runs with --execute.
 ---
 
 # NewsBreak Ad Hogging Safeguard
@@ -116,22 +116,25 @@ around gaps).
 Fully autonomous, same as `newsbreak-campaign-safeguard` -- no Slack,
 email, or GitHub Issue.
 
-## Status: DRY-RUN BURN-IN (as of 2026-09-14)
+## Status: LIVE (as of 2026-09-15)
 
-Built and verified working against live data the same day across RF, HVAC,
-and Bathroom -- no crashes, and the lifetime backstop immediately surfaced
-real, plausible dud/no-lead ads with genuine multi-day spend behind each
-one (e.g. RF ad `2091751561375313921`: $60.28 lifetime spend, ROAS 0.20).
-**Not yet flipped to `--execute`** -- same dry-run burn-in choice as
-`newsbreak-campaign-safeguard`; the GitHub Actions workflow currently runs
-WITHOUT `--execute`.
+Burn-in reviewed directly (one full day, 2026-09-14, across all 5
+accounts). The lifetime backstop found the same ~27 real dud/no-lead ads
+on every single check throughout the day with identical numbers each time
+(e.g. RF ad `2091751561375313921`: $60.28 lifetime spend, ROAS 0.20) --
+completely stable, no flip-flopping. The same-day throttle also correctly
+caught a genuinely worsening case (RF ad `2094290640131645442`: $4.26 ->
+$6.84 -> $10.76 spent through the day, zero leads throughout). No false
+positives observed. `.github/workflows/ad-hogging-safeguard.yml` now runs
+with `--execute`; `--verbose-log` dropped (was only on for burn-in review).
 
-**Thresholds are a first pass** -- see the module docstring's derivation
-table. In particular, the same-day throttle's fair-share multiplier (5x)
-and CPL benchmark logic haven't yet had a chance to prove themselves live
-the way Meta's went through several real threshold revisions
-(`AD_HOG_FAIR_SHARE_MULTIPLIER` itself was redefined twice on the Meta side
-before settling) -- expect this to need real-world adjustment.
+**Thresholds are still a first pass** -- see the module docstring's
+derivation table. In particular, the same-day throttle's fair-share
+multiplier (5x) and CPL benchmark logic haven't yet had a chance to prove
+themselves against a real trip the way Meta's went through several real
+threshold revisions (`AD_HOG_FAIR_SHARE_MULTIPLIER` itself was redefined
+twice on the Meta side before settling) -- expect this to need real-world
+adjustment once it actually fires live.
 
 ## If something looks wrong
 
