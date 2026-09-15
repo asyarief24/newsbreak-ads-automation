@@ -1,0 +1,10 @@
+{
+  "incidents": {},
+  "lifetime_kills": {
+    "2091751561375313921": {
+      "adset_id": "2091745516889493505",
+      "date": "2026-09-15",
+      "reason": "bad-ROAS: $64.13 lifetime, ROAS 0.19"
+    }
+  }
+}

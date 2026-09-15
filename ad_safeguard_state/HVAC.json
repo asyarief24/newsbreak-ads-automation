@@ -1,0 +1,35 @@
+{
+  "incidents": {},
+  "lifetime_kills": {
+    "2094364405052526593": {
+      "adset_id": "2094334786659987457",
+      "date": "2026-09-15",
+      "reason": "no-lead: $16.90 lifetime, 0 leads"
+    },
+    "2094364894599106562": {
+      "adset_id": "2094334786659987457",
+      "date": "2026-09-15",
+      "reason": "dud: $19.28 lifetime, 0 purchases"
+    },
+    "2094412180733612033": {
+      "adset_id": "2094334786659987457",
+      "date": "2026-09-15",
+      "reason": "no-lead: $16.73 lifetime, 0 leads"
+    },
+    "2094364980653641729": {
+      "adset_id": "2094334786659987457",
+      "date": "2026-09-15",
+      "reason": "no-lead: $10.01 lifetime, 0 leads"
+    },
+    "2095355787637735425": {
+      "adset_id": "2094334786659987457",
+      "date": "2026-09-15",
+      "reason": "no-lead: $12.68 lifetime, 0 leads"
+    },
+    "2095363919965372417": {
+      "adset_id": "2095359829084520449",
+      "date": "2026-09-15",
+      "reason": "no-lead: $19.19 lifetime, 0 leads"
+    }
+  }
+}

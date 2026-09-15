@@ -1,0 +1,15 @@
+{
+  "incidents": {},
+  "lifetime_kills": {
+    "2096027465246097409": {
+      "adset_id": "2096026116202741762",
+      "date": "2026-09-15",
+      "reason": "no-lead: $11.96 lifetime, 0 leads"
+    },
+    "2096026780723101697": {
+      "adset_id": "2096026116202741762",
+      "date": "2026-09-15",
+      "reason": "no-lead: $16.34 lifetime, 0 leads"
+    }
+  }
+}
