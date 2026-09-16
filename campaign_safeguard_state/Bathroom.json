@@ -1,3 +1,9 @@
 {
-  "incidents": {}
+  "incidents": {
+    "purchase_rate_crash": {
+      "date": "2026-09-16",
+      "reason": "Lead->Purchase crash: 6 leads, 0 purchases today (0%) vs trailing baseline 12%",
+      "retests": 0
+    }
+  }
 }
