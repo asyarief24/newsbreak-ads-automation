@@ -3,7 +3,7 @@
     "lead_rate_crash": {
       "date": "2026-09-17",
       "reason": "LPV->Lead crash: 18 LPVs, 0 leads today (0%) vs trailing baseline 10%",
-      "retests": 1
+      "retests": 2
     }
   }
 }
