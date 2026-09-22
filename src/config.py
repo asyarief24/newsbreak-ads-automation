@@ -11,9 +11,12 @@ campaign_id/adset_id are left unset for those rather than guessed. Add
 them once a real launch target exists for those accounts.
 """
 import json
+import subprocess
 from pathlib import Path
+from typing import Optional
 
 ACCOUNTS_PATH = Path(__file__).resolve().parent.parent / "accounts.json"
+PROJECT_ROOT = ACCOUNTS_PATH.parent
 
 
 def load_accounts() -> dict:
@@ -63,3 +66,24 @@ def append_adset_id(key: str, new_id: str) -> None:
     accounts = load_accounts()
     accounts.setdefault(key, {}).setdefault("adset_ids", []).append(new_id)
     ACCOUNTS_PATH.write_text(json.dumps(accounts, indent=2) + "\n")
+
+
+def git_commits_behind() -> Optional[int]:
+    """Best-effort git fetch + how many commits HEAD is behind its remote
+    tracking branch. Returns None on any failure (no network, no git repo,
+    no upstream configured, anything) -- never raises. Ported directly from
+    meta-ads-automation's own config.py (same signature, same convention:
+    used by newsbreak-session-check's script to build a structured
+    pass/fail report)."""
+    try:
+        subprocess.run(
+            ["git", "fetch", "-q"],
+            cwd=PROJECT_ROOT, timeout=15, capture_output=True, check=True,
+        )
+        result = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD..@{u}"],
+            cwd=PROJECT_ROOT, timeout=10, capture_output=True, text=True, check=True,
+        )
+        return int(result.stdout.strip())
+    except Exception:
+        return None

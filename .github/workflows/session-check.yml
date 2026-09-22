@@ -1,0 +1,40 @@
+name: Session check (every 6 hours)
+
+# Automates newsbreak-session-check's drift checks (git sync, ad set cap)
+# on a schedule -- mirrors the equivalent wrapper added to
+# meta-ads-automation the same day, at the user's explicit request. The
+# skill's own SKILL.md frames it as a manual preflight for a human/Claude
+# session, not something meant to run unattended, but this gives drift
+# detection between sessions too. Read-only throughout
+# (session_check.py never writes to NewsBreak or to any state file), so
+# there's nothing to commit back -- unlike campaign-safeguard.yml/
+# ad-hogging-safeguard.yml, this workflow has no state-commit step.
+#
+# "Only message if something needs attention": session_check.py exits 1
+# only when a structural check actually fails (git behind, an ad set at/
+# over NewsBreak's 50-ad cap) and exits 0 on a clean pass -- a clean run
+# is invisible (green, no notification), a failing run shows red in the
+# Actions tab and triggers GitHub's default failure-notification email to
+# the repo owner. No custom notification channel wired up here.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  session-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run session check
+        env:
+          NEWSBREAK_ACCESS_TOKEN: ${{ secrets.NEWSBREAK_ACCESS_TOKEN }}
+        run: python .claude/skills/newsbreak-session-check/scripts/session_check.py
