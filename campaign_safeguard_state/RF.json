@@ -3,7 +3,7 @@
     "roas_spend_throttle": {
       "date": "2026-09-23",
       "reason": "ROAS-vs-spend throttle: $43.69 spent today (bar $40.00 (0 purchases -- doubled bar)), ROAS 0.00 < floor 0.5",
-      "retests": 1
+      "retests": 2
     }
   }
 }
