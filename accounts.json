@@ -5,7 +5,8 @@
     "campaign_id": "2091744733140676610",
     "adset_ids": [
       "2091745516889493505",
-      "2094952544982056961"
+      "2094952544982056961",
+      "2102567288813121537"
     ],
     "lpv_event_type": "view_content",
     "lead_event_types": [],
@@ -20,7 +21,10 @@
       "2095359829084520449"
     ],
     "lpv_event_type": "view_content",
-    "lead_event_types": ["submit_form", "complete_registration"],
+    "lead_event_types": [
+      "submit_form",
+      "complete_registration"
+    ],
     "purchase_event_type": "complete_payment"
   },
   "Nutra": {
@@ -36,7 +40,10 @@
       "2095483742196121601"
     ],
     "lpv_event_type": "view_content",
-    "lead_event_types": ["submit_form", "complete_registration"],
+    "lead_event_types": [
+      "submit_form",
+      "complete_registration"
+    ],
     "purchase_event_type": "complete_payment"
   },
   "Siding": {
@@ -48,7 +55,10 @@
       "2096001982752145409"
     ],
     "lpv_event_type": "view_content",
-    "lead_event_types": ["submit_form", "complete_registration"],
+    "lead_event_types": [
+      "submit_form",
+      "complete_registration"
+    ],
     "purchase_event_type": "complete_payment"
   },
   "Flooring": {
@@ -60,7 +70,10 @@
       "2096026116202741762"
     ],
     "lpv_event_type": "view_content",
-    "lead_event_types": ["submit_form", "complete_registration"],
+    "lead_event_types": [
+      "submit_form",
+      "complete_registration"
+    ],
     "purchase_event_type": "complete_payment"
   }
 }
