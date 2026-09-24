@@ -1,3 +1,9 @@
 {
-  "incidents": {}
+  "incidents": {
+    "roas_spend_throttle": {
+      "date": "2026-09-24",
+      "reason": "ROAS-vs-spend throttle: $126.55 spent today (bar $20.00), ROAS 0.42 < floor 0.5",
+      "retests": 0
+    }
+  }
 }
