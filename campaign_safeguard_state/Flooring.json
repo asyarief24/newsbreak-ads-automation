@@ -1,9 +1,3 @@
 {
-  "incidents": {
-    "lead_rate_crash": {
-      "date": "2026-09-23",
-      "reason": "LPV->Lead crash: 21 LPVs, 0 leads today (0%) vs trailing baseline 12%",
-      "retests": 1
-    }
-  }
+  "incidents": {}
 }
