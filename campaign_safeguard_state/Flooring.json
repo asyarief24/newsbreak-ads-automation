@@ -3,7 +3,7 @@
     "purchase_rate_crash": {
       "date": "2026-11-16",
       "reason": "Lead->Purchase crash: 5 leads, 0 purchases today (0%) vs trailing baseline 20%",
-      "retests": 1
+      "retests": 2
     }
   }
 }
