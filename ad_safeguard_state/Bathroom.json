@@ -115,6 +115,16 @@
       "adset_id": "2095342930799935490",
       "date": "2026-11-16",
       "reason": "bad-ROAS: $36.23 lifetime, ROAS 0.29"
+    },
+    "2120703422892662785": {
+      "adset_id": "2095342930799935490",
+      "date": "2026-11-17",
+      "reason": "no-lead: $18.70 lifetime, 0 leads"
+    },
+    "2120703272736579586": {
+      "adset_id": "2095342930799935490",
+      "date": "2026-11-17",
+      "reason": "dud: $18.55 lifetime, 0 purchases"
     }
   }
 }
