@@ -75,6 +75,11 @@
       "adset_id": "2095357431553245186",
       "date": "2026-11-16",
       "reason": "no-lead: $25.07 lifetime, 0 leads"
+    },
+    "2120707032342913026": {
+      "adset_id": "2095357431553245186",
+      "date": "2026-11-18",
+      "reason": "dud: $20.98 lifetime, 0 purchases"
     }
   }
 }
