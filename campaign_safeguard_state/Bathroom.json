@@ -1,14 +1,3 @@
 {
-  "incidents": {
-    "roas_spend_throttle": {
-      "date": "2026-11-19",
-      "reason": "ROAS-vs-spend throttle: $51.63 spent today (bar $40.00 (0 purchases -- doubled bar)), ROAS 0.00 < floor 0.5",
-      "retests": 0
-    },
-    "lead_rate_crash": {
-      "date": "2026-11-19",
-      "reason": "LPV->Lead crash: 56 LPVs, 2 leads today (4%) vs trailing baseline 9%",
-      "retests": 0
-    }
-  }
+  "incidents": {}
 }
